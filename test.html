@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="//s1.videocc.net/library/jquery/3.x/jquery-3.5.1.min.js"></script>
+    <script src="//s1.videocc.net/library/blueimp-md5/md5-2.18.0.min.js"></script>
+    <!-- 第一步：引入直播SDK -->
+    <script src="//player.polyv.net/livesdk/polyv-live.min.js"></script>
+    <title>普通直播</title>
+    <style>
+      .ppt,.player{
+        width: 500px;
+        height: 250px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--第二步：创建初始化ppt与讲师画面元素-->
+    <div id="ppt" class="ppt"></div>
+    <div id="player" class="player"></div>
+    <script>
+      var chatroom = null;
+      var liveSdk = null;
+      window.onload = function () {
+      //注意事项：appSecret，appId不建议在前端显示，不安全，请您一定要请求后端接口获取sign
+		  //参数开始
+var appId="122";var channelId="122";var appSecret="122";
+//参数结束
+      var userId = "test-001";
+      var userName = '测试-001';
+      var userPic = 'http://livestatic.videocc.net/assets/wimages/missing_face.png';
+      var params = {
+        appId: appId,
+        channelId: channelId,
+        timestamp: new Date().getTime(),
+      };
+      var sign = getSign(params);
+      // 第三步：创建SDK实例
+      var liveSdk = new PolyvLiveSdk({
+        channelId: channelId,
+        sign: sign, // 频道验证签名
+        timestamp: params.timestamp, // 毫秒级时间戳
+        appId: appId, // polyv 后台的appId
+        user: {
+          userId: userId,
+          userName: userName,
+          pic: userPic,
+        },
+      });
+
+      // 第四步：监听频道信息读取完成事件，初始化播放器
+      liveSdk.on(PolyvLiveSdk.EVENTS.CHANNEL_DATA_INIT, (event, data) => {
+        liveSdk.setupPlayer({
+          pptEl: "#ppt",
+          el: "#player",
+          type: "auto",
+          autoplay: true, // 设置自动播放
+        });
+        console.log('---频道信息---')
+        console.log(data)
+      });
+      /******函数*******/
+      //计算sign，仅demo使用，请您一定要请求后端接口获取sign
+      function getSign(params) {
+        var paramsStr = "";
+        $.each(params, function (key, val) {
+          paramsStr += key + "" + val;
+        });
+        var finalStr = appSecret + paramsStr + appSecret;
+        return md5(finalStr).toUpperCase();
+      }
+    };
+    </script>
+  </body>
+</html>
