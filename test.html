@@ -1,77 +1,306 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="//s1.videocc.net/library/jquery/3.x/jquery-3.5.1.min.js"></script>
-    <script src="//s1.videocc.net/library/blueimp-md5/md5-2.18.0.min.js"></script>
-    <!-- 第一步：引入直播SDK -->
-    <script src="//player.polyv.net/livesdk/polyv-live.min.js"></script>
-    <title>普通直播</title>
+<!DOCTYPE>
+<!--解决idea thymeleaf 表达式模板报红波浪线-->
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>WebRTC + WebSocket</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
     <style>
-      .ppt,.player{
-        width: 500px;
-        height: 250px;
-      }
+        html,body{
+            margin: 0;
+            padding: 0;
+        }
+        #main{
+            position: absolute;
+            width: 370px;
+            height: 550px;
+        }
+        #localVideo{
+            position: absolute;
+            background: #757474;
+            top: 10px;
+            right: 10px;
+            width: 100px;
+            height: 150px;
+            z-index: 2;
+        }
+        #remoteVideo{
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            background: #222;
+        }
+        #buttons{
+            z-index: 3;
+            bottom: 20px;
+            left: 90px;
+            position: absolute;
+        }
+        #toUser{
+            border: 1px solid #ccc;
+            padding: 7px 0px;
+            border-radius: 5px;
+            padding-left: 5px;
+            margin-bottom: 5px;
+        }
+        #toUser:focus{
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+        }
+        #call{
+            width: 70px;
+            height: 35px;
+            background-color: #00BB00;
+            border: none;
+            margin-right: 25px;
+            color: white;
+            border-radius: 5px;
+        }
+        #hangup{
+            width:70px;
+            height:35px;
+            background-color:#FF5151;
+            border:none;
+            color:white;
+            border-radius: 5px;
+        }
     </style>
-  </head>
-  <body>
-    <!--第二步：创建初始化ppt与讲师画面元素-->
-    <div id="ppt" class="ppt"></div>
-    <div id="player" class="player"></div>
-    <script>
-      var chatroom = null;
-      var liveSdk = null;
-      window.onload = function () {
-      //注意事项：appSecret，appId不建议在前端显示，不安全，请您一定要请求后端接口获取sign
-		  //参数开始
-var appId="122";var channelId="122";var appSecret="122";
-//参数结束
-      var userId = "test-001";
-      var userName = '测试-001';
-      var userPic = 'http://livestatic.videocc.net/assets/wimages/missing_face.png';
-      var params = {
-        appId: appId,
-        channelId: channelId,
-        timestamp: new Date().getTime(),
-      };
-      var sign = getSign(params);
-      // 第三步：创建SDK实例
-      var liveSdk = new PolyvLiveSdk({
-        channelId: channelId,
-        sign: sign, // 频道验证签名
-        timestamp: params.timestamp, // 毫秒级时间戳
-        appId: appId, // polyv 后台的appId
-        user: {
-          userId: userId,
-          userName: userName,
-          pic: userPic,
-        },
-      });
+</head>
+<body>
+    <div id="main">
+        <video id="remoteVideo" playsinline autoplay></video>
+        <video id="localVideo" playsinline autoplay muted></video>
 
-      // 第四步：监听频道信息读取完成事件，初始化播放器
-      liveSdk.on(PolyvLiveSdk.EVENTS.CHANNEL_DATA_INIT, (event, data) => {
-        liveSdk.setupPlayer({
-          pptEl: "#ppt",
-          el: "#player",
-          type: "auto",
-          autoplay: true, // 设置自动播放
-        });
-        console.log('---频道信息---')
-        console.log(data)
-      });
-      /******函数*******/
-      //计算sign，仅demo使用，请您一定要请求后端接口获取sign
-      function getSign(params) {
-        var paramsStr = "";
-        $.each(params, function (key, val) {
-          paramsStr += key + "" + val;
-        });
-        var finalStr = appSecret + paramsStr + appSecret;
-        return md5(finalStr).toUpperCase();
-      }
-    };
-    </script>
-  </body>
+        <div id="buttons">
+            <input id="toUser" placeholder="输入在线好友账号"/><br/>
+            <button id="call">视频通话</button>
+            <button id="hangup">挂断</button>
+        </div>
+    </div>
+</body>
+<!-- 可引可不引 -->
+<!--<script th:src="@{/js/adapter-2021.js}"></script>-->
+<script type="text/javascript" th:inline="javascript">
+    let username = /*[[${username}]]*/'';
+    let localVideo = document.getElementById('localVideo');
+    let remoteVideo = document.getElementById('remoteVideo');
+    let websocket = null;
+    let peer = null;
+
+    WebSocketInit();
+    ButtonFunInit();
+
+    /* WebSocket */
+    function WebSocketInit(){
+        //判断当前浏览器是否支持WebSocket
+        if ('WebSocket' in window) {
+            websocket = new WebSocket("wss://192.168.1.157/webrtc/"+username);//可能要更改
+        } else {
+            alert("当前浏览器不支持WebSocket！");
+        }
+
+        //连接发生错误的回调方法
+        websocket.onerror = function (e) {
+            alert("WebSocket连接发生错误！");
+        };
+
+        //连接关闭的回调方法
+        websocket.onclose = function () {
+            console.error("WebSocket连接关闭");//出问题
+        };
+
+        //连接成功建立的回调方法
+        websocket.onopen = function () {
+            console.log("WebSocket连接成功");
+        };
+
+        //接收到消息的回调方法
+        websocket.onmessage = async function (event) {
+            let { type, fromUser, msg, sdp, iceCandidate } = JSON.parse(event.data.replace(/\n/g,"\\n").replace(/\r/g,"\\r"));
+
+            console.log(type);
+
+            if (type === 'hangup') {
+                console.log(msg);
+                document.getElementById('hangup').click();
+                return;
+            }
+
+            if (type === 'call_start') {
+                let msg = "0"
+                if(confirm(fromUser + "发起视频通话，确定接听吗")==true){
+                    document.getElementById('toUser').value = fromUser;
+                    WebRTCInit();
+                    msg = "1"
+                }
+
+                websocket.send(JSON.stringify({
+                    type:"call_back",
+                    toUser:fromUser,
+                    fromUser:username,
+                    msg:msg
+                }));
+
+                return;
+            }
+
+            if (type === 'call_back') {
+                if(msg === "1"){
+                    console.log(document.getElementById('toUser').value + "同意视频通话");
+
+                    //创建本地视频并发送offer
+                    let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    localVideo.srcObject = stream;
+                    stream.getTracks().forEach(track => {
+                        peer.addTrack(track, stream);
+                    });
+
+                    let offer = await peer.createOffer();
+                    await peer.setLocalDescription(offer);
+
+                    let newOffer = offer.toJSON();
+                    newOffer["fromUser"] = username;
+                    newOffer["toUser"] = document.getElementById('toUser').value;
+                    websocket.send(JSON.stringify(newOffer));
+                }else if(msg === "0"){
+                    alert(document.getElementById('toUser').value + "拒绝视频通话");
+                    document.getElementById('hangup').click();
+                }else{
+                    alert(msg);
+                    document.getElementById('hangup').click();
+                }
+
+                return;
+            }
+
+            if (type === 'offer') {
+                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = stream;
+                stream.getTracks().forEach(track => {
+                    peer.addTrack(track, stream);
+                });
+
+                await peer.setRemoteDescription(new RTCSessionDescription({ type, sdp }));
+                let answer = await peer.createAnswer();
+                let newAnswer = answer.toJSON();
+
+                newAnswer["fromUser"] = username;
+                newAnswer["toUser"] = document.getElementById('toUser').value;
+                websocket.send(JSON.stringify(newAnswer));
+
+                await peer.setLocalDescription(answer);
+                return;
+            }
+
+            if (type === 'answer') {
+                peer.setRemoteDescription(new RTCSessionDescription({ type, sdp }));
+                return;
+            }
+
+            if (type === '_ice') {
+                peer.addIceCandidate(iceCandidate);
+                return;
+            }
+
+        }
+    }
+
+    /* WebRTC */
+    function WebRTCInit(){
+        peer = new RTCPeerConnection();
+
+        //ice
+        peer.onicecandidate = function (e) {
+            if (e.candidate) {
+                websocket.send(JSON.stringify({
+                    type: '_ice',
+                    toUser:document.getElementById('toUser').value,
+                    fromUser:username,
+                    iceCandidate: e.candidate
+                }));
+            }
+        };
+
+        //track
+        peer.ontrack = function (e) {
+            if (e && e.streams) {
+                remoteVideo.srcObject = e.streams[0];
+            }
+        };
+    }
+
+    /* 按钮事件 */
+    function ButtonFunInit(){
+        //视频通话
+        document.getElementById('call').onclick = function (e){
+            document.getElementById('toUser').style.visibility = 'hidden';
+
+            let toUser = document.getElementById('toUser').value;
+            if(!toUser){
+                alert("请先指定好友账号，再发起视频通话！");
+                return;
+            }
+
+            if(peer == null){
+                WebRTCInit();
+            }
+
+            websocket.send(JSON.stringify({
+                type:"call_start",
+                fromUser:username,
+                toUser:toUser,
+            }));
+        }
+
+        //挂断
+        document.getElementById('hangup').onclick = function (e){
+            document.getElementById('toUser').style.visibility = 'unset';
+
+            if(localVideo.srcObject){
+                const videoTracks = localVideo.srcObject.getVideoTracks();
+                videoTracks.forEach(videoTrack => {
+                    videoTrack.stop();
+                    localVideo.srcObject.removeTrack(videoTrack);
+                });
+            }
+
+            if(remoteVideo.srcObject){
+                const videoTracks = remoteVideo.srcObject.getVideoTracks();
+                videoTracks.forEach(videoTrack => {
+                    videoTrack.stop();
+                    remoteVideo.srcObject.removeTrack(videoTrack);
+                });
+
+                //挂断同时，通知对方
+                websocket.send(JSON.stringify({
+                    type:"hangup",
+                    fromUser:username,
+                    toUser:document.getElementById('toUser').value,
+                }));
+            }
+
+            if(peer){
+                peer.ontrack = null;
+                peer.onremovetrack = null;
+                peer.onremovestream = null;
+                peer.onicecandidate = null;
+                peer.oniceconnectionstatechange = null;
+                peer.onsignalingstatechange = null;
+                peer.onicegatheringstatechange = null;
+                peer.onnegotiationneeded = null;
+
+                peer.close();
+                peer = null;
+            }
+
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+        }
+    }
+</script>
 </html>
