@@ -15,15 +15,17 @@ app.get("/", (_, res) => {
   res.render("home")
 })
 
-app.get("/rooms/new",(req,res)=>{
-  res.redirect(`/${Math.floor(Math.random()*1000000000)}`)
-})
+// app.post("/rooms/new",(req,res)=>{
+//   res.redirect(req.query.roomid)
+// })
+
+
 
 app.get('/:room',(req,res)=>{
   res.render('room',{ room_id: req.params.room})
 })
 
-//websocket
+//websocket         
 io.on("connection",(socket)=>{
   socket.on("ENTER_ROOM",(room_id, user_name)=>{
     socket.join(room_id)
@@ -38,6 +40,6 @@ io.on("connection",(socket)=>{
   })
 })
 
-server.listen(3000, () => {
+server.listen(2580, () => {
   console.log(`application is running on http://localhost:3000`)
 })

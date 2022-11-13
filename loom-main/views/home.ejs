@@ -1,16 +1,30 @@
-<!DOCTYPE html>
+<html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LOOM!</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Meliveta</title>
+  <!-- 引入 layui.css -->
+  <link rel="stylesheet" href="layui-v2.6.8/layui/css/layui.css">
+  <link rel="stylesheet" href="css/style.css"> 
+  <script src="js/jquery.js"></script>
+  <!-- <link rel="stylesheet" href="style2.css">  -->
 </head>
 <body>
-  <main class="container mx-auto p-4">
-    <h1 class="text-6xl font-thin my-4">LOOM!</h1>
-    <a href="/rooms/new" class="btn-action">创建房间</a>
-  </main>
-</body>
+  <section>
+    <img src="resources/bg.jpg" id="bg">
+    <img src="resources/moon.png" id="moon">
+    <img src="resources/mountain.png" id="mountain">
+    <img src="resources/road.png" id="road">
+    <h2 id="text">Welcome</h2>
+  </section>
+  <div id="room">
+    <h2 id="text2">Meliveta</h2>
+    <input type="text" name="title" required lay-verify="required" placeholder="请输入会议号:" autocomplete="off" class="layui-input input_room">
+    <a  class="btn-action">进入房间</a>
+  </div>
+<script src="js/scripts.js"></script>
+<script src="layui-v2.6.8/layui/layui.js"></script>
+</body> 
 </html>

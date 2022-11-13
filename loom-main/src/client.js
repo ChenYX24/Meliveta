@@ -1,7 +1,7 @@
 // 前端實作程式碼
 
-import { io } from "socket.io-client"
 import Peer from "peerjs"
+import { io } from "socket.io-client"
 
 const room_id =document.querySelector("#room_id").dataset.id
 const socket = io()
@@ -22,7 +22,12 @@ socket.on("USER_LEFT",(user_name)=>{
 
 
 
-const v=document.createElement('video')
+const v=document.createElement('video');
+// $("v").css({
+//   transform: rotateY(180deg);
+//   -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+//   -moz-transform:rotateY(180deg); /* Firefox */
+// })
 v.muted=true//去杂音
 
 var id
@@ -51,12 +56,8 @@ navigator.mediaDevices.getUserMedia({ audio:true,video:true}).then((stream)=>{
     call.on("close",()=>{
       v.remove()
     })
-    console.log(id)
-    console.log(call)
-    console.log(call.peer)
-
-
     users[call.peer]=call
+    console.log(call)
     //socket.emit("R_C",users[id],id)
   })
   
