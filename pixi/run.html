@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <script src="pixi\pixi.min.js"></script>
+  <script type="text/javascript" charset="UTF-8">
+    //获取参数方法
+    function GetUrlParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return unescape(r[2]);
+      return null;
+    }
+    //使用获取参数方法
+    var id = GetUrlParam("id");
+    var nameL = GetUrlParam("nameL");
+    var nameR = GetUrlParam("nameR");
+    console.log("id:" + id + "  nameL:" + nameL + "  nameR:" + nameR);
+  </script>
+  <body>
+    <script type="text/javascript">
+      //监听与捕捉键盘事件
+      function keyboard(keyCode) {
+        let key = {};
+        key.code = keyCode;
+        key.isDown = false;
+        key.isUp = true;
+        key.press = undefined;
+        key.release = undefined;
+        //The `downHandler`
+        key.downHandler = (event) => {
+          if (event.keyCode === key.code) {
+            if (key.isUp && key.press) key.press();
+            key.isDown = true;
+            key.isUp = false;
+          }
+          event.preventDefault();
+        };
+        //The `upHandler`
+        key.upHandler = (event) => {
+          if (event.keyCode === key.code) {
+            if (key.isDown && key.release) key.release();
+            key.isDown = false;
+            key.isUp = true;
+          }
+          event.preventDefault();
+        };
+        //Attach event listeners
+        window.addEventListener("keydown", key.downHandler.bind(key), false);
+        window.addEventListener("keyup", key.upHandler.bind(key), false);
+        return key;
+      }
+
+      let app = new PIXI.Application({
+        width: 1650,
+        height: 930,
+        backgroundColor: 0xffffff,
+      });
+      document.body.appendChild(app.view);
+
+      //加载图片
+      PIXI.loader
+        .add("images/material.json")
+        .add("images/background1.jpg")
+        .load(setup);
+
+      let mat,
+        state,
+        npc,
+        npcRight,
+        outside,
+        outside1,
+        inside1,
+        inside2,
+        message;
+      let building1,
+        buildings2,
+        buildings3,
+        buildings4,
+        buildings5,
+        building6,
+        buildings7;
+
+      //初始化
+      function setup() {
+        //创建三个场景：地图、直播间1、直播间2
+        outside = new PIXI.Container();
+        inside1 = new PIXI.Container();
+        inside2 = new PIXI.Container();
+
+        //将场景加到舞台上
+        app.stage.addChild(outside);
+        app.stage.addChild(inside1);
+        app.stage.addChild(inside2);
+
+        //设置可见性
+        inside1.visible = false;
+        inside2.visible = false;
+
+        //message=new Text("Welcome!");
+
+        //别名
+        mat = PIXI.loader.resources["images/material.json"].textures;
+
+        outside1 = new PIXI.Sprite(
+          PIXI.loader.resources["images/background1.jpg"].texture
+        );
+        outside1.scale.set(2, 2);
+        outside1.x = 140;
+        outside.addChild(outside1);
+        //outside.addChild(message);
+        //message.position.set(54, 96);
+
+        let copy = 2; //房子的份数
+
+        //创建建筑的精灵图，设置位置
+        building1 = new PIXI.Sprite(mat["House1.png"]);
+        building1.scale.set(2, 2);
+        building1.position.set(1225, 100);
+
+        buildings2 = [];
+        for (let i = 0; i < copy; i++) {
+          let building2 = new PIXI.Sprite(mat["House2.png"]);
+          building2.scale.set(2, 2);
+          buildings2.push(building2);
+        }
+        buildings2[0].position.set(1000, 150);
+        buildings2[1].position.set(1150, 725);
+
+        buildings3 = [];
+        for (let i = 0; i < copy; i++) {
+          let building3 = new PIXI.Sprite(mat["House3.png"]);
+          building3.scale.set(2, 2);
+          buildings3.push(building3);
+        }
+        buildings3[0].position.set(180, 300);
+        buildings3[1].position.set(975, 550);
+
+        buildings4 = [];
+        for (let i = 0; i < copy; i++) {
+          let building4 = new PIXI.Sprite(mat["House4.png"]);
+          building4.scale.set(2, 2);
+          buildings4.push(building4);
+        }
+        buildings4[0].position.set(480, 550);
+        buildings4[1].position.set(625, 700);
+
+        buildings5 = [];
+        for (let i = 0; i < copy; i++) {
+          let building5 = new PIXI.Sprite(mat["House1withBanner.png"]);
+          building5.scale.set(2, 2);
+          buildings5.push(building5);
+        }
+        buildings5[0].position.set(170, 600);
+        buildings5[1].position.set(900, 300);
+
+        building6 = new PIXI.Sprite(mat["House3withSmoke.png"]);
+        building6.scale.set(2, 2);
+        building6.position.set(475, 275);
+
+        buildings7 = [];
+        for (let i = 0; i < copy; i++) {
+          let building7 = new PIXI.Sprite(mat["House4withSmoke.png"]);
+          building7.scale.set(2, 2);
+          buildings7.push(building7);
+        }
+        buildings7[0].position.set(300, 80);
+        buildings7[1].position.set(1250, 275);
+
+        //加到室外场景中
+        outside.addChild(building1);
+        outside.addChild(buildings2[0]);
+        outside.addChild(buildings2[1]);
+        outside.addChild(buildings3[0]);
+        outside.addChild(buildings3[1]);
+        outside.addChild(buildings4[0]);
+        outside.addChild(buildings4[1]);
+        outside.addChild(buildings5[0]);
+        outside.addChild(buildings5[1]);
+        outside.addChild(building6);
+        outside.addChild(buildings7[0]);
+        outside.addChild(buildings7[1]);
+
+        //创建人物(前后左右)
+
+        npc = new PIXI.Sprite(mat[nameL]);
+        npc.position.set(380, 660);
+        npc.scale.set(2, 2);
+        npc.vx = 0;
+        npc.vy = 0;
+        outside.addChild(npc);
+        npcRight = new PIXI.Sprite(mat[nameR]);
+        npcRight.scale.set(2, 2);
+        outside.addChild(npcRight);
+        npcRight.visible = false;
+
+        //键盘控制
+        let left = keyboard(37),
+          up = keyboard(38),
+          right = keyboard(39),
+          down = keyboard(40);
+
+        left.press = () => {
+          npc.vx = -3;
+          npc.vy = 0;
+          npc.visible = true;
+          npcRight.visible = false;
+        };
+        left.release = () => {
+          if (!right.isDown && npc.vy === 0) {
+            npc.vx = 0;
+          }
+        };
+        right.press = () => {
+          npc.visible = false;
+          npcRight.visible = true;
+          npc.vx = 3;
+          npc.vy = 0;
+        };
+        right.release = () => {
+          if (!left.isDown && npc.vy === 0) {
+            npc.vx = 0;
+          }
+        };
+        up.press = () => {
+          npc.vx = 0;
+          npc.vy = -3;
+        };
+        up.release = () => {
+          if (!down.isDown && npc.vx === 0) {
+            npc.vy = 0;
+          }
+        };
+        down.press = () => {
+          npc.vx = 0;
+          npc.vy = 3;
+        };
+        down.release = () => {
+          if (!up.isDown && npc.vx === 0) {
+            npc.vy = 0;
+          }
+        };
+
+        //set the state to `play`
+        state = play;
+
+        //Start the loop
+        app.ticker.add((delta) => gameLoop(delta));
+      }
+
+      //循环
+      function gameLoop(delta) {
+        //更新
+        state(delta);
+      }
+
+      //边界检测
+      function contain(s1, s2) {
+        let collision = undefined;
+        //Left
+        if (s1.x < s2.x) {
+          s1.x = s2.x;
+          collision = "left";
+        }
+        //Top
+        if (s1.y < s2.y) {
+          s1.y = s2.y;
+          collision = "top";
+        }
+        //Right
+        if (s1.x + s1.width > s2.width + s2.x) {
+          s1.x = s2.x + s2.width - s1.width;
+          collision = "right";
+        }
+        //Bottom
+        if (s1.y + s1.height > s2.height) {
+          s1.y = s2.height - s1.height;
+          collision = "bottom";
+        }
+        //Return the `collision` value
+        return collision;
+      }
+
+      //碰撞检测
+      function hitTestRectangle(r1, r2) {
+        let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
+        hit = false;
+
+        //精灵图的中心
+        r1.centerX = r1.x + r1.width / 2;
+        r1.centerY = r1.y + r1.height / 2;
+        r2.centerX = r2.x + r2.width / 2;
+        r2.centerY = r2.y + r2.height / 2;
+
+        //精灵图一半的高度和宽度
+        r1.halfWidth = r1.width / 2;
+        r1.halfHeight = r1.height / 2;
+        r2.halfWidth = r2.width / 4;
+        r2.halfHeight = r2.height / 4;
+
+        //计算中心之间的距离
+        vx = r1.centerX - r2.centerX;
+        vy = r1.centerY - r2.centerY;
+
+        //两个图一半的高度相加
+        combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+        combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+
+        //检测x坐标
+        if (Math.abs(vx) < combinedHalfWidths) {
+          //检测y坐标
+          if (Math.abs(vy) < combinedHalfHeights) hit = true; //发生碰撞
+          else {
+            hit = false; //没有碰撞
+          }
+        } else {
+          hit = false;
+        }
+        return hit;
+      }
+
+      //主要操作
+      function play(delta) {
+        //移动
+        npc.x += npc.vx;
+        npc.y += npc.vy;
+        npcRight.position.set(npc.x, npc.y);
+
+        //碰撞检测
+        if (
+          hitTestRectangle(npc, building1) ||
+          hitTestRectangle(npc, buildings2[0]) ||
+          hitTestRectangle(npc, buildings2[1]) ||
+          hitTestRectangle(npc, buildings3[0]) ||
+          hitTestRectangle(npc, buildings3[1]) ||
+          hitTestRectangle(npc, buildings4[0]) ||
+          hitTestRectangle(npc, buildings4[1]) ||
+          hitTestRectangle(npc, buildings5[0]) ||
+          hitTestRectangle(npc, buildings5[1]) ||
+          hitTestRectangle(npc, building6) ||
+          hitTestRectangle(npc, buildings7[0]) ||
+          hitTestRectangle(npc, buildings7[1])
+        ) {
+          //唤起直播
+          alert("hit!");
+          npc.x += 5;
+          npc.y += 5;
+        }
+
+        //碰到边界
+        let hitsWall = contain(npc, outside1);
+        if (hitsWall == "left" || hitsWall == "right") npc.vx = 0;
+        if (hitsWall == "top" || hitsWall == "bottom") npc.vy = 0;
+      }
+    </script>
+  </body>
+</html>
