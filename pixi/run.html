@@ -12,7 +12,7 @@
       }
     </style>
   </head>
-  <script src="pixi\pixi.min.js"></script>
+  <script src="./pixi.min.js"></script>
   <script type="text/javascript" charset="UTF-8">
     //获取参数方法
     function GetUrlParam(name) {
@@ -335,7 +335,6 @@
         npc.x += npc.vx;
         npc.y += npc.vy;
         npcRight.position.set(npc.x, npc.y);
-
         //碰撞检测
         if (
           hitTestRectangle(npc, building1) ||
@@ -352,9 +351,10 @@
           hitTestRectangle(npc, buildings7[1])
         ) {
           //唤起直播
-          alert("hit!");
-          npc.x += 5;
-          npc.y += 5;
+          console.log("hit!");
+          npc.x -= npc.vx*2;
+          npc.y -= npc.vy*2;
+          npcRight.position.set(npc.x, npc.y);
         }
 
         //碰到边界

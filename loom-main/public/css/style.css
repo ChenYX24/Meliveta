@@ -59,13 +59,30 @@ section img
   font-size: 12em;
   z-index: 1;
 }
-#text2
+.text2
 {
-  position: relative;
-  bottom: 120px;
   color:rgb(255, 255, 255);
   font-size: 12em;
   z-index: 1;
+}
+.radio_father
+{
+  position: relative;
+  bottom:180px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.radio_father1
+{
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.radio1
+{
+  display: none ;
 }
 #road
 {

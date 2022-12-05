@@ -20,6 +20,11 @@ app.get("/", (_, res) => {
 // })
 
 
+app.get('/run.html',(_,res)=>{
+  res.render('run')
+})
+
+
 
 app.get('/:room',(req,res)=>{
   res.render('room',{ room_id: req.params.room})
@@ -41,5 +46,5 @@ io.on("connection",(socket)=>{
 })
 
 server.listen(2580, () => {
-  console.log(`application is running on http://localhost:3000`)
+  console.log(`application is running on http://localhost:2580`)
 })
