@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-12-08 15:53:55
- * @LastEditTime: 2022-12-08 20:59:55
+ * @LastEditTime: 2022-12-08 23:52:13
  * @LastEditors: LAPTOP-2QR058GS
  * @Description: In User Settings Edit
  * @FilePath: \Meliveta\pixi\public\js\popup.js
@@ -23,7 +23,20 @@
     close.onclick = ()=>{
       togglePop();
     }
-
+    //回车发送
+    $("input").on("keydown",function(event){
+      var event=event||window.event;
+      if(event.keyCode==13){
+        enter.onclick();
+      }
+      if(event.keyCode==8){
+        this.value=enter.value.substr(0,this.value.length-1)
+      }
+      else{
+        var temp=String.fromCharCode(event.keyCode)
+        $(this).val($(this).val()+temp)
+      }
+    })
 
 
     enter.onclick = ()=>{
