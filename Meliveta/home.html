@@ -1,0 +1,64 @@
+<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meliveta</title>
+  <!-- 引入 layui.css -->
+  <link rel="stylesheet" href="./public/layui-v2.6.8/layui/css/layui.css">
+  <link rel="stylesheet" href="./public/css/style.css"> 
+  <script src="./public/js/jquery.js"></script>
+  <!-- <link rel="stylesheet" href="style2.css">  -->
+</head>
+<body>
+  <section>
+    <img src="./public/resources/bg.jpg" id="bg">
+    <img src="./public/resources/moon.png" id="moon">
+    <img src="./public/resources/mountain.png" id="mountain">
+    <img src="./public/resources/road.png" id="road">
+    <h2 id="text">Welcome</h2>
+  </section>
+  <div id="room" style="cursor:default">
+    <div class="radio_father">
+    <div class="radio_father1">
+    <img src="./public/images/characters/bagboyL.png" width="40px"/>
+    <input type="radio" class="radio1" name="radio1" value="bagboy" /><h2 class="text2" style="color:rgb(192, 54, 139)">M</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/blackboy1L.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="blackboy1" /><h2 class="text2">e</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/baldmanL.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="baldman" /><h2 class="text2">l</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/blackboy2L.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="blackboy2" /><h2 class="text2">i</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/blondegirlL.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="blondegirl" /><h2 class="text2">v</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/brownboyL.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="brownboy" /><h2 class="text2">e</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/girlL.png" width="30px"/>
+    <input type="radio" class="radio1" name="radio1" value="girl" /><h2 class="text2">t</h2>
+    </div>
+    <div class="radio_father1">
+    <img src="./public/images/characters/redboyL.png" width="25px"/>
+    <input type="radio" class="radio1" name="radio1" value="redboy"/><h2 class="text2">a</h2>
+    </div>
+    </div>
+    <input type="text" name="title" required lay-verify="required" placeholder="请输入名字:（点击字母选择人物）" autocomplete="off" class="layui-input input_room">
+    <a  class="btn-action" style="cursor: pointer">进入等待大厅</a>
+
+  </div>
+<script src="./public/js/scripts.js"></script>
+<script src="./public/layui-v2.6.8/layui/layui.js"></script>
+</body> 
+</html>

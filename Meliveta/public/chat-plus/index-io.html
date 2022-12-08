@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meliveta</title>
+  <script src="https://cdn.socket.io/4.4.0/socket.io.min.js" crossorigin="anonymous">
+  </script>
+   <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    #chat{
+      position: absolute;
+      width: 300px;
+      height: 550px;
+      right:5px;
+      z-index: 1;
+    }
+    #charRoom{
+      position: absolute;
+      width: 300px;
+      height: 450px;
+      border: dashed;
+      border-color: darkgray;
+      background-color:dimgrey;
+      overflow: auto;
+    }
+    #context{
+      position: absolute;
+      bottom: 37px;
+      left: 5px;
+      width: 200px;
+      height: 30px;
+    }
+    #btn{
+      position: absolute;
+      bottom: 39px;
+      right:104px;
+      height: 30px;
+    }
+    #script{
+      z-index: 2;
+    }
+    #button{
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      z-index: 1;
+    }
+  </style>
+  <script type="text/javascript">
+    function GetUrlParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return unescape(r[2]);
+      return null;
+    }
+    
+  </script>
+</head>
+<script src="pixi.min.js"></script>
+<body>
+  <!-- 需要一进入浏览器就要建立链接 -->
+  <!-- 点击按钮发送消息给服务器 -->
+  <div id="chat">
+    <div>聊天区</div>
+    <div id="charRoom"></div>
+    <br>
+    <input type="text" id="context" placeholder="请输入消息">
+  
+    <button id="btn"> 点击发送 </button>
+  </div>
+
+  <div id="button">
+    <button onclick="ret()">返回上一页面</button>
+  </div>
+
+  <script type="text/javascript" >
+    // 获取用户名
+    var uName = localStorage.getItem("username");
+    var nameL = GetUrlParam("nameL");
+    var nameR = GetUrlParam("nameR");
+    console.log(uName+nameL+nameR);
+    // 文本框内容
+    const context = document.getElementById('context')
+    // 点击按钮
+    const btn = document.getElementById('btn')
+    // 要显示聊天室的区域
+    const charRoom = document.getElementById('charRoom')
+
+    let app = new PIXI.Application({
+      width: 256, // default: 800
+      height: 256, // default: 600
+      antialias: true, // default: false
+      transparent: false, // default: false
+      resolution: 1, // default: 1
+    });
+
+    //Add the canvas that Pixi automatically created for you to the HTML document
+    document.body.appendChild(app.view);
+    app.renderer.autoResize = true;
+    app.renderer.resize(512, 512);
+    app.renderer.backgroundColor = 0xffffff;
+    app.renderer.view.style.position = "absolute";
+    app.renderer.view.style.display = "block";
+    app.renderer.autoResize = true;
+    app.renderer.resize(window.innerWidth, window.innerHeight);
+
+    PIXI.loader
+    .add("../images/insideBackground1-2.jpg")
+    .add("../images/material.json")
+    .load(setup);
+
+    function keyboard(keyCode) {
+      let key = {};
+      key.code = keyCode;
+      key.isDown = false;
+      key.isUp = true;
+      key.press = undefined;
+      key.release = undefined;
+      //The `downHandler`
+      key.downHandler = (event) => {
+        if (event.keyCode === key.code) {
+          if (key.isUp && key.press) key.press();
+          key.isDown = true;
+          key.isUp = false;
+        }
+        event.preventDefault();
+      };
+      //The `upHandler`
+      key.upHandler = (event) => {
+        if (event.keyCode === key.code) {
+          if (key.isDown && key.release) key.release();
+          key.isDown = false;
+          key.isUp = true;
+        }
+        event.preventDefault();
+      };
+      //Attach event listeners
+      window.addEventListener("keydown", key.downHandler.bind(key), false);
+      window.addEventListener("keyup", key.upHandler.bind(key), false);
+      return key;
+    }
+
+    let inside,inside1,mat,npc,state;
+    function setup() {
+      inside = new PIXI.Container();
+      app.stage.addChild(inside);
+      inside1 = new PIXI.Sprite(
+        PIXI.loader.resources["../images/insideBackground1-2.jpg"].texture
+      );
+      var timesW = app.screen.width / inside1.width;
+      var timesH = app.screen.height / inside1.height;
+      inside1.scale.set(timesW, timesW);
+      inside1.anchor.x = 1;
+      inside1.anchor.y = 1;
+      inside1.x = app.screen.width;
+      inside1.y = app.screen.height;
+
+      inside.addChild(inside1);
+
+      //创建人物(前后左右)
+      mat = PIXI.loader.resources["../images/material.json"].textures;
+
+      npc = new PIXI.Sprite(mat[nameL]);
+      npc.position.set(380, 660);
+      npc.scale.set(timesW, timesW);
+      npc.vx = 0;
+      npc.vy = 0;
+      inside.addChild(npc);
+      npcRight = new PIXI.Sprite(mat[nameR]);
+      npcRight.scale.set(timesW, timesW);
+      inside.addChild(npcRight);
+      npcRight.visible = false;
+
+      //人头上的人名
+      let Text = PIXI.Text,
+          TextStyle = PIXI.TextStyle;
+
+        let style = new TextStyle({
+          fontFamily: "Bauhaus 93",
+          fontSize: 16,
+          fill: "#996600",
+          stroke: "#FFFFFF",
+          strokeThickness: 4,
+          dropShadow: true,
+          dropShadowColor: "#000000",
+          dropShadowBlur: 4,
+          dropShadowAngle: Math.PI / 6,
+          dropShadowDistance: 6,
+        });
+
+        userName = new Text(uName, style);
+        userName.anchor.x = 0.5;
+        userName.anchor.y = 0.5;
+        inside.addChild(userName);
+
+      //键盘控制
+      let left = keyboard(37),
+        up = keyboard(38),
+        right = keyboard(39),
+        down = keyboard(40);
+
+      left.press = () => {
+        npc.vx = -3;
+        npc.vy = 0;
+        npc.visible = true;
+        npcRight.visible = false;
+      };
+      left.release = () => {
+        if (!right.isDown && npc.vy === 0) {
+          npc.vx = 0;
+        }
+      };
+      right.press = () => {
+        npc.visible = false;
+        npcRight.visible = true;
+        npc.vx = 3;
+        npc.vy = 0;
+      };
+      right.release = () => {
+        if (!left.isDown && npc.vy === 0) {
+          npc.vx = 0;
+        }
+      };
+      up.press = () => {
+        npc.vx = 0;
+        npc.vy = -3;
+      };
+      up.release = () => {
+        if (!down.isDown && npc.vx === 0) {
+          npc.vy = 0;
+        }
+      };
+      down.press = () => {
+        npc.vx = 0;
+        npc.vy = 3;
+      };
+      down.release = () => {
+        if (!up.isDown && npc.vx === 0) {
+          npc.vy = 0;
+        }
+      };
+      state=play;
+      app.ticker.add((delta) => gameLoop(delta));
+    }
+
+    //循环
+    function gameLoop(delta) {
+      //更新
+      state(delta);
+    }
+    
+    //返回上一页面
+    function ret(){
+      window.history.back(-1);
+    }
+
+    // 使用 socket.io 框架与服务器相连接  客户端
+    const socket = io.connect('http://localhost:8080') 
+
+    // 点击发送消息的事件
+    btn.onclick = function() {
+      // 将用户名和要发送的内容放在一个对象中，一起传送给后端
+      const values = {
+        name: uName,
+        context: context.value
+      }
+
+      // 清空文本框的内容
+      context.value = ''
+
+      charRoom.scrollTop = charRoom.scrollHeight;
+
+      // 通过 socket.io 框架向服务器发送数据
+      socket.emit('sendMsg', values)
+    }
+     //边界检测
+     function contain(s1, s2) {
+        let collision = undefined;
+        //Left
+        if (s1.x < s2.x) {
+        s1.x = s2.x;
+        collision = "left";
+        }
+        //Top
+        if (s1.y < s2.y) {
+        s1.y = s2.y;
+        collision = "top";
+        }
+        //Right
+        if (s1.x + s1.width > s2.width + s2.x) {
+        s1.x = s2.x + s2.width - s1.width;
+        collision = "right";
+        }
+        //Bottom
+        if (s1.y + s1.height > s2.height) {
+        s1.y = s2.height - s1.height;
+        collision = "bottom";
+        }
+        //Return the `collision` value
+        return collision;
+    }
+
+     //回车发送
+    var enter=document.getElementById("context");
+    enter.addEventListener("keyup",function(event){
+      var event=event||window.event;
+      if(event.keyCode==13){
+        btn.onclick();
+      }
+      if(event.keyCode==8){
+        enter.value=enter.value.substr(0,enter.value.length-1)
+      }
+    })
+
+    function play(delta) {
+        //移动
+        npc.x += npc.vx;
+        npc.y += npc.vy;
+        npcRight.position.set(npc.x, npc.y);
+        userName.position.set(npc.x + npc.width / 2, npc.y - 15);
+
+        //碰到边界
+        let hitsWall = contain(npc, {
+        x: 20,
+        y: (app.screen.height * 2) / 3,
+        width: app.screen.width - 30,
+        height: app.screen.height - 10,
+        });
+        if (hitsWall == "left" || hitsWall == "right") npc.vx = 0;
+        if (hitsWall == "top" || hitsWall == "bottom") npc.vy = 0;
+    }
+    
+    // 使用 socket.on 方法监听服务端发送过来的数据
+    socket.on('pushMsg', data => {
+      // 添加到页面上
+      charRoom.innerHTML += `
+        <strong>${data.name}:</strong>
+        <span>${data.context}</span>
+        <br />
+      `
+    })
+
+  </script>
+</body>
+</html>
