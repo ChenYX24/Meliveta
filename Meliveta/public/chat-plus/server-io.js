@@ -8,6 +8,8 @@ const { Server } = require('socket.io')
 // 实例化 httpServer
 const httpServer = createServer();
 
+
+
 var postions = {};
 
 // 初始化 socket.io
@@ -20,6 +22,8 @@ const io = new Server(httpServer, {
 
 // 使用 socket.io 来建立连接
 io.on('connection', socket => {
+  console.log("connected");
+  
   socket.on('sendMsg', data => {
     io.emit('pushMsg', data) //发给所有的客户端，放到聊天框中
     console.log(data);
@@ -43,6 +47,6 @@ io.on('connection', socket => {
 })
 
 // 创建服务器，进行监听
-httpServer.listen(8080, function() {
-  console.log('http://localhost:8080');
+httpServer.listen(2580, function() {
+  console.log('http://localhost:2580');
 })
